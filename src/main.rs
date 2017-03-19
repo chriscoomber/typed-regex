@@ -19,6 +19,7 @@ fn example_1() {
         next: End,
     });
 
+    // Writes: `Regex1(Concat { this: AnyChar('a'), next: End })`
     println!("{:?}", x);
 }
 
@@ -99,6 +100,7 @@ fn example_2() {
         }
     );
 
+    // Writes: `Regex2(Concat { this: StartText, next: Concat { this: Repeat { e: AnyChar('a'), _phantoms: PhantomData }, next: Concat { this: CaseSensitiveLiteral { this: Dash, next: End }, next: Concat { this: Group { e: Other(This(CaseSensitiveLiteral {this: n, next: CaseSensitiveLiteral { this: u, next: CaseSensitiveLiteral { this: l, next: CaseSensitiveLiteral { this: l, next: End } } } })), _phantoms: PhantomData }, next: End } } } })`
     println!("{:?}", x);
 }
 
