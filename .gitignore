@@ -1,3 +1,9 @@
+# Editor files
+/*.idea
+
+# Generated files
+/target
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db

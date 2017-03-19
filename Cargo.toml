@@ -1,0 +1,8 @@
+[package]
+name = "typed-regex"
+version = "0.1.0"
+authors = ["ccoomber"]
+readme = "README.md"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/chriscoomber/typed-regex"
+categories = ["text-processing"]
