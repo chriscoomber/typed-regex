@@ -191,7 +191,6 @@ pub struct InFirstBranch<T>(PhantomData<T>);
 #[allow(dead_code)]
 pub struct InSecondBranch<T>(PhantomData<T>);
 
-// TODO: more groups?
 /// This is a bit of a trick. I'd like to implement `FindGroup1<U>` for
 /// `Concat<T, S>; T: FindGroup1<U>` one way (look in first element) and for
 /// `Concat<T, S>; S: FindGroup1<U>` another way (look in second element). However, this isn't
@@ -201,95 +200,143 @@ pub struct InSecondBranch<T>(PhantomData<T>);
 /// same structure, so `x.find_group_1()` will just work.
 ///
 /// (This trick was borrowed from the hlist crate.)
-pub trait FindGroup1<U, Where> {
-    fn find_group_1(&self) -> &U;
+pub trait FindGroup<GroupIndex, U, Where> {
+    fn find_group(&self) -> &U;
 }
 
-impl<U> FindGroup1<U, Here> for Group<_1, U> {
-    fn find_group_1(&self) -> &U {
+impl<GroupIndex, U> FindGroup<GroupIndex, U, Here> for Group<GroupIndex, U> {
+    fn find_group(&self) -> &U {
         &self.concat
     }
 }
 
-impl<GroupIndex, T, U, Where> FindGroup1<U, InFirstBranch<Where>> for Group<GroupIndex, T>
-    where T: FindGroup1<U, Where>
+impl<OtherGroupIndex, T, GroupIndex, U, Where> FindGroup<GroupIndex, U, InFirstBranch<Where>> for Group<OtherGroupIndex, T>
+    where T: FindGroup<GroupIndex, U, Where>
 {
-    fn find_group_1(&self) -> &U {
-        self.concat.find_group_1()
+    fn find_group(&self) -> &U {
+        FindGroup::<GroupIndex, U, Where>::find_group(&self.concat)
     }
 }
 
-impl<T, S, U, Where> FindGroup1<U, InFirstBranch<Where>> for Cons<T, S>
-    where T: FindGroup1<U, Where>
+impl<T, S, GroupIndex, U, Where> FindGroup<GroupIndex, U, InFirstBranch<Where>> for Cons<T, S>
+    where T: FindGroup<GroupIndex, U, Where>
 {
-    fn find_group_1(&self) -> &U {
-        &self.0.find_group_1()
+    fn find_group(&self) -> &U {
+        FindGroup::<GroupIndex, U, Where>::find_group(&self.0)
     }
 }
 
-impl<T, S, U, Where> FindGroup1<U, InSecondBranch<Where>> for Cons<T, S>
-    where S: FindGroup1<U, Where>
+impl<T, S, GroupIndex, U, Where> FindGroup<GroupIndex, U, InSecondBranch<Where>> for Cons<T, S>
+    where S: FindGroup<GroupIndex, U, Where>
 {
-    fn find_group_1(&self) -> &U {
-        &self.1.find_group_1()
+    fn find_group(&self) -> &U {
+        FindGroup::<GroupIndex, U, Where>::find_group(&self.1)
     }
 }
 
 /// Either can actually fail to find the group
-pub trait MaybeFindGroup1<U, Where> {
-    fn maybe_find_group_1(&self) -> Option<&U>;
+pub trait MaybeFindGroup<GroupIndex, U, Where> {
+    fn maybe_find_group(&self) -> Option<&U>;
 }
 
-// tediously re-implement the weaker search in all the same places
-impl<U> MaybeFindGroup1<U, Here> for Group<_1, U> {
-    fn maybe_find_group_1(&self) -> Option<&U> {
+impl<GroupIndex, U> MaybeFindGroup<GroupIndex, U, Here> for Group<GroupIndex, U> {
+    fn maybe_find_group(&self) -> Option<&U> {
         Some(&self.concat)
     }
 }
 
-impl<GroupIndex, T, U, Where> MaybeFindGroup1<U, InFirstBranch<Where>> for Group<GroupIndex, T>
-    where T: MaybeFindGroup1<U, Where>
+impl<OtherGroupIndex, T, GroupIndex, U, Where> MaybeFindGroup<GroupIndex, U, InFirstBranch<Where>> for Group<OtherGroupIndex, T>
+    where T: MaybeFindGroup<GroupIndex, U, Where>
 {
-    fn maybe_find_group_1(&self) -> Option<&U> {
-        self.concat.maybe_find_group_1()
+    fn maybe_find_group(&self) -> Option<&U> {
+        MaybeFindGroup::<GroupIndex, U, Where>::maybe_find_group(&self.concat)
     }
 }
 
-impl<T, S, U, Where> MaybeFindGroup1<U, InFirstBranch<Where>> for Cons<T, S>
-    where T: MaybeFindGroup1<U, Where>
+impl<T, S, GroupIndex, U, Where> MaybeFindGroup<GroupIndex, U, InFirstBranch<Where>> for Cons<T, S>
+    where T: MaybeFindGroup<GroupIndex, U, Where>
 {
-    fn maybe_find_group_1(&self) -> Option<&U> {
-        self.0.maybe_find_group_1()
+    fn maybe_find_group(&self) -> Option<&U> {
+        MaybeFindGroup::<GroupIndex, U, Where>::maybe_find_group(&self.0)
     }
 }
 
-impl<T, S, U, Where> MaybeFindGroup1<U, InSecondBranch<Where>> for Cons<T, S>
-    where S: MaybeFindGroup1<U, Where>
+impl<T, S, GroupIndex, U, Where> MaybeFindGroup<GroupIndex, U, InSecondBranch<Where>> for Cons<T, S>
+    where S: MaybeFindGroup<GroupIndex, U, Where>
 {
-    fn maybe_find_group_1(&self) -> Option<&U> {
-        self.1.maybe_find_group_1()
+    fn maybe_find_group(&self) -> Option<&U> {
+        MaybeFindGroup::<GroupIndex, U, Where>::maybe_find_group(&self.1)
     }
 }
 
-impl<T, S, U, Where> MaybeFindGroup1<U, InFirstBranch<Where>> for Either<T, S>
-    where T: MaybeFindGroup1<U, Where>
+impl<T, S, GroupIndex, U, Where> MaybeFindGroup<GroupIndex, U, InFirstBranch<Where>> for Either<T, S>
+    where T: MaybeFindGroup<GroupIndex, U, Where>
 {
-    fn maybe_find_group_1(&self) -> Option<&U> {
+    fn maybe_find_group(&self) -> Option<&U> {
         match *self {
-            Either::Left(ref x) => x.maybe_find_group_1(),
+            Either::Left(ref x) => MaybeFindGroup::<GroupIndex, U, Where>::maybe_find_group(x),
             Either::Right(_) => None,
         }
     }
 }
 
-impl<T, S, U, Where> MaybeFindGroup1<U, InSecondBranch<Where>> for Either<T, S>
-    where S: MaybeFindGroup1<U, Where>
+impl<T, S, GroupIndex, U, Where> MaybeFindGroup<GroupIndex, U, InSecondBranch<Where>> for Either<T, S>
+    where S: MaybeFindGroup<GroupIndex, U, Where>
 {
-    fn maybe_find_group_1(&self) -> Option<&U> {
+    fn maybe_find_group(&self) -> Option<&U> {
         match *self {
             Either::Left(_) => None,
-            Either::Right(ref x) => x.maybe_find_group_1(),
+            Either::Right(ref x) => MaybeFindGroup::<GroupIndex, U, Where>::maybe_find_group(x),
         }
+    }
+}
+
+// Specific group finding traits (more ergonomical)
+pub trait FindGroup1<U, Where> {
+    fn find_group_1(&self) -> &U;
+}
+
+impl<T, U, Where> FindGroup1<U, Where> for T
+    where T: FindGroup<_1, U, Where>
+{
+    fn find_group_1(&self) -> &U {
+        FindGroup::<_1, U, Where>::find_group(self)
+    }
+}
+
+pub trait MaybeFindGroup1<U, Where> : MaybeFindGroup<_1, U, Where> {
+    fn maybe_find_group_1(&self) -> Option<&U>;
+}
+
+impl<T, U, Where> MaybeFindGroup1<U, Where> for T
+    where T: MaybeFindGroup<_1, U, Where>
+{
+    fn maybe_find_group_1(&self) -> Option<&U> {
+        MaybeFindGroup::<_1, U, Where>::maybe_find_group(self)
+    }
+}
+
+pub trait FindGroup2<U, Where> {
+    fn find_group_2(&self) -> &U;
+}
+
+impl<T, U, Where> FindGroup2<U, Where> for T
+    where T: FindGroup<_2, U, Where>
+{
+    fn find_group_2(&self) -> &U {
+        FindGroup::<_2, U, Where>::find_group(self)
+    }
+}
+
+pub trait MaybeFindGroup2<U, Where> : MaybeFindGroup<_2, U, Where> {
+    fn maybe_find_group_2(&self) -> Option<&U>;
+}
+
+impl<T, U, Where> MaybeFindGroup2<U, Where> for T
+    where T: MaybeFindGroup<_2, U, Where>
+{
+    fn maybe_find_group_2(&self) -> Option<&U> {
+        MaybeFindGroup::<_2, U, Where>::maybe_find_group(self)
     }
 }
 
@@ -301,7 +348,7 @@ extern crate typed_regex_derive;
 mod tests {
     extern crate typed_regex;
 
-    use self::typed_regex::{Pattern, FindGroup1, MaybeFindGroup1};
+    use self::typed_regex::{Pattern, FindGroup1, MaybeFindGroup1, FindGroup2, MaybeFindGroup2};
 
     #[test]
     fn concat() {
@@ -375,7 +422,7 @@ mod tests {
     }
 
     #[test]
-    fn first_group() {
+    fn groups() {
         #[derive(PatternBuilder)]
         #[pattern = "A(BC)(A)"]
         struct Pattern;
@@ -385,6 +432,8 @@ mod tests {
         assert_eq!("ABCA", res.as_ref().unwrap().get_matched_string());
         assert_eq!("BC", res.as_ref().unwrap().find_group_1().get_matched_string());
         assert_eq!("BC", res.as_ref().unwrap().maybe_find_group_1().unwrap().get_matched_string());
+        assert_eq!("A", res.as_ref().unwrap().find_group_2().get_matched_string());
+        assert_eq!("A", res.as_ref().unwrap().maybe_find_group_2().unwrap().get_matched_string());
     }
 
     #[test]
