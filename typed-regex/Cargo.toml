@@ -1,0 +1,16 @@
+[package]
+name = "typed-regex"
+version = "0.1.0"
+authors = ["chriscoomber <Christopher.Coomber@metaswitch.com>"]
+
+[dependencies]
+hlist = "0.1.2"
+either = "1.4.0"
+void = "1.0.1"
+
+[dev-dependencies]
+typed-regex-derive = {path = "../typed-regex-derive"}
+typed-regex = {path = "."}
+hlist = "0.1.2"
+either = "1.4.0"
+void = "1.0.1"

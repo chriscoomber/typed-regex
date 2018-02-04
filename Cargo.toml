@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "typed-regex",
+    "typed-regex-derive",
+]
