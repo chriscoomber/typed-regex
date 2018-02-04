@@ -1,16 +1,18 @@
 # Features
 
-- Patterns
-  - literal
-  - unions
-  - concat
-  - negation (hard)
-  - whitespace, digit, etc.
-  - repeater
-- find all, find first (pattern in string), split
-- match (pattern == string), get group info
+- match test string against pattern
+  - becomes an instance of the patter - useful for future failure-free computations, such as:
+    - getting first group in an impossible to fail way
+    - splitting on known letters to a known number of substrings (not implemented yet)
 
-# Use cases
+# Limitations:
+
+- not complete alphabet yet (extremely incomplete)
+- only one group supported
+- doesn't understand any shorthand specifiers (e.g. \w, \s)
+- code is a mess
+
+# Example usage
 
 ```rust
 #[macro_use]
@@ -52,3 +54,13 @@ fn main() {
     assert_eq!(["The", "sky", "is", "grey"], ok_res.split::<typed_regex::Space>());
 }
 ```
+
+# Contributing / status of project
+
+This is just a proof of concept, and there are a billion things to flesh out, 
+including some learning of how regex is actually implemented in the real world. This
+is by no means trying to be efficient.
+
+Would be cool if we could write a function to convert between any two equivalent (or 
+from sub- to super-sets) of pattern. This may be necessary for implementing "split" 
+in a nice way - not sure. Lots of questions at this point - not many answers.
